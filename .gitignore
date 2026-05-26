@@ -1,0 +1,84 @@
+# python
+__pycache__/
+*.pyc
+*.pyo
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+/.cache/*
+/.cache
+.cache
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+local-*
+.claude
+.z-ai-config
+dev.log
+test
+prompt
+
+server.log
+
+.github/instructions/kluster-code-verify.instructions.md
+.kluster
+
+# backups
+/backups/
+.tmp/abe5adfca4457ff5e705150db5578b2b/sw.js
+public/fallback-ce627215c0e4a9af.js
+public/sw.js
+public/workbox-c18c662b.js
+
+# blocked-delete legacy review artifacts; canonical review system lives under
+# .kiro/specs/review-advanced/ and scripts/review-advanced.mjs
+scripts/review-advanced.ts
+.kiro/specs/code-review-core-platform/
+.kiro/specs/code-review-product-apis/
+.kiro/specs/code-review-admin-ops/
+.kiro/specs/code-review-data-pipelines/
+.kiro/specs/code-review-ai-matching/
+.kiro/specs/code-review-user-web/
+.kiro/specs/code-review-commercial-comms/
+.kiro/specs/code-review-quality-tooling/
+.kiro/specs/code-review-playbooks/
