@@ -9,14 +9,26 @@ from ._types import ApiResponse, Meta, RateLimit
 from .errors import create_error_from_response
 from .pagination import PaginatedAsyncIterator
 from .resources.awards import AwardsResource
+from .resources.categories import CategoriesResource
+from .resources.cipc import CipcResource
 from .resources.companies import CompaniesResource
+from .resources.directors import DirectorsResource
+from .resources.documents import DocumentsResource
+from .resources.forensic import ForensicResource
+from .resources.industry import IndustryResource
+from .resources.intelligence import IntelligenceResource
 from .resources.meta import MetaResource
+from .resources.newsletters import NewslettersResource
+from .resources.ocds import OcdsResource
 from .resources.organizations import OrganizationsResource
+from .resources.provinces import ProvincesResource
+from .resources.seo import SeoResource
+from .resources.services import ServicesResource
 from .resources.tenders import TendersResource
 
 T = TypeVar("T")
 
-BASE_URL = "https://api.tenders-sa.org/v1"
+BASE_URL = "https://api.tenders-sa.org/v2"
 DEFAULT_TIMEOUT = 30.0
 
 
@@ -43,13 +55,25 @@ class TendersaClient:
         self.awards = AwardsResource(self)
         self.companies = CompaniesResource(self)
         self.organizations = OrganizationsResource(self)
+        self.directors = DirectorsResource(self)
+        self.categories = CategoriesResource(self)
+        self.provinces = ProvincesResource(self)
+        self.seo = SeoResource(self)
+        self.industry = IndustryResource(self)
+        self.services = ServicesResource(self)
+        self.ocds = OcdsResource(self)
+        self.intel = IntelligenceResource(self)
+        self.forensic = ForensicResource(self)
+        self.cipc = CipcResource(self)
+        self.newsletters = NewslettersResource(self)
+        self.documents = DocumentsResource(self)
         self.meta = MetaResource(self)
 
     def _default_headers(self) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self._api_key}",
             "Accept": "application/json",
-            "User-Agent": "tendersa-sdk-python/0.1.0a0",
+            "User-Agent": "tendersa-sdk-python/0.2.0a0",
         }
 
     def _parse_rate_limit(self, resp: httpx.Response) -> RateLimit | None:

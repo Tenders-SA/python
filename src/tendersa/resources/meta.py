@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from .._types import ApiStatus, CategoryCount, ProvinceCount, UsageStats
+from typing import Any
+
+from .._types import ApiStatus, CategoryCount, IndustryBenchmarkSummary, ProvinceCount, UsageStats
 
 
 class MetaResource:
@@ -22,3 +24,10 @@ class MetaResource:
     async def usage(self) -> UsageStats:
         raw = await self._client._get_single("/meta/usage")
         return UsageStats(**raw.data)
+
+    async def industries(
+        self,
+        params: dict[str, Any] | None = None,
+    ) -> list[IndustryBenchmarkSummary]:
+        raw = await self._client._get_list("/meta/industries", params=params)
+        return [IndustryBenchmarkSummary(**i) if isinstance(i, dict) else i for i in raw.data]

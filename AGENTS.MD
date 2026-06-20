@@ -36,4 +36,5 @@ hatch publish             # publish to PyPI
 - **Alpha status**: v0.1.0a0, no automated publish in CI
 
 ## Published
+- v0.2.0a0 (beta) — v2 API update: 16 resources, 90+ endpoints, new types (categories, provinces, directors, ocds, intel, forensic, cipc, newsletters, documents, industry, services, seo)
 - v0.1.0a0 (alpha)

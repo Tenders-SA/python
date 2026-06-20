@@ -1,6 +1,6 @@
 # Tenders-SA Python SDK
 
-Official Python SDK for the [Tenders-SA Developer API](https://tenders-sa.org/developers) — enriched South African public procurement data.
+Official Python SDK for the [Tenders-SA Developer API v2](https://tenders-sa.org/developers) — enriched South African public procurement data.
 
 ---
 
@@ -28,14 +28,14 @@ The platform goes beyond simple aggregation: AI enrichment extracts key requirem
 
 ---
 
-## About the Developer API
+## About the Developer API v2
 
-The Tenders-SA Developer API exposes enriched procurement data through a set of RESTful endpoints. It serves from a dedicated infrastructure layer with its own database, synced from the main platform, ensuring the API remains fast and available independently of the main web application.
+The Tenders-SA Developer API v2 exposes enriched procurement data through a comprehensive set of RESTful endpoints. It serves from a dedicated infrastructure layer with its own database, synced from the main platform, ensuring the API remains fast and available independently of the main web application.
 
 ### API Base URL
 
 ```
-https://api.tenders-sa.org/v1
+https://api.tenders-sa.org/v2
 ```
 
 ### Authentication
@@ -67,7 +67,7 @@ All API responses follow a consistent envelope:
   "meta": {
     "requestId": "req_uuid",
     "timestamp": "2026-01-01T00:00:00Z",
-    "apiVersion": "v1",
+    "apiVersion": "v2",
     "page": 1,
     "pageSize": 20,
     "totalCount": 142,
@@ -153,9 +153,9 @@ from tendersa import TendersaClient
 
 client = TendersaClient(
     api_key="tsa_prod_your_key",
-    base_url="https://api.tenders-sa.org",  # default
-    timeout=30.0,                            # 30s (default)
-    max_retries=3,                           # exponential backoff (default)
+    base_url="https://api.tenders-sa.org/v2",  # default
+    timeout=30.0,                               # 30s (default)
+    max_retries=3,                              # exponential backoff (default)
 )
 ```
 
@@ -168,9 +168,11 @@ async with TendersaClient(api_key="tsa_prod_your_key") as client:
 
 ### Resources
 
-The SDK is organised into five resource classes, accessed as properties on the client.
+The SDK is organised into **16 resource classes**, accessed as properties on the client.
 
-#### Tenders
+#### Tenders — `client.tenders`
+
+Full tender discovery, filtering, search, and detail.
 
 ```python
 # List with filters
@@ -181,66 +183,246 @@ result = await client.tenders.list({
     "sort": "-closingDate",
 })
 
-# Get detail
-detail = await client.tenders.get("tender_001")
+# Search
+results = await client.tenders.search({"q": "road construction"})
+
+# Filtered lists
+closing = await client.tenders.closing_soon()
+new = await client.tenders.new_tenders()
+bbbee = await client.tenders.bbbee_required()
+by_province = await client.tenders.by_province("Gauteng", {"status": "OPEN"})
+by_org = await client.tenders.by_organization("org_001")
+
+# Value range
+range_results = await client.tenders.value_range(1_000_000, 10_000_000)
+
+# Counts
+prov_counts = await client.tenders.counts_by_province()
+cat_counts = await client.tenders.counts_by_category()
+org_counts = await client.tenders.counts_by_organization()
+status_counts = await client.tenders.counts_by_status()
 
 # Sub-resources
+detail = await client.tenders.get("tender_001")
 docs = await client.tenders.documents("tender_001")
 awards = await client.tenders.awards("tender_001")
 timeline = await client.tenders.timeline("tender_001")
+contracts = await client.tenders.contracts("tender_001")
+milestones = await client.tenders.milestones("tender_001")
+bidders = await client.tenders.bidders("tender_001")
+sub_req = await client.tenders.submission_requirements("tender_001")
+related = await client.tenders.related("tender_001")
 
 # AI analysis
 analysis = await client.tenders.analysis("tender_001")
 estimate = await client.tenders.value_estimate("tender_001")
 
-# Search
-results = await client.tenders.search({"q": "road construction"})
+# SEO and slug
+seo_data = await client.tenders.seo("tender_001")
+slug_data = await client.tenders.slug("tender_001")
 ```
 
-#### Awards
+#### Awards — `client.awards`
+
+Award data and market analytics.
 
 ```python
-result = await client.awards.list({
-    "province": "Western Cape",
-    "beeLevel": "Level 1",
-    "minAmount": 1_000_000,
-})
-
+result = await client.awards.list({"province": "Western Cape", "beeLevel": "Level 1"})
 award = await client.awards.get("award_001")
 
-analytics = await client.awards.analytics({
-    "groupBy": "province",
-    "from": "2025-01-01",
-    "to": "2025-12-31",
-})
+# Filtered lists
+by_tender = await client.awards.by_tender("tender_001")
+by_supplier = await client.awards.by_supplier("BuildCorp SA")
+by_date = await client.awards.by_date_range({"from": "2025-01-01", "to": "2025-12-31"})
+
+# Analytics
+analytics = await client.awards.analytics({"groupBy": "province"})
+by_prov = await client.awards.analytics_by_province({"from": "2025-01-01"})
+by_cat = await client.awards.analytics_by_category()
+by_bee = await client.awards.analytics_by_bee_level()
+by_ent = await client.awards.analytics_by_enterprise_type()
+
+# Subcontractors
+subs = await client.awards.subcontractors("award_001")
 ```
 
-#### Companies
+#### Companies — `client.companies`
+
+Supplier/contractor intelligence.
 
 ```python
+# Profile (includes awards + directors)
 company = await client.companies.get("BuildCorp SA")
+print(company.profile.name, company.profile.total_awards)
+print(company.awards[0].supplier_name)
 
-results = await client.companies.search({
-    "q": "Construction",
-    "beeLevel": "Level 1",
-    "province": "Gauteng",
-})
+# Search
+results = await client.companies.search({"q": "Construction", "beeLevel": "Level 1"})
+
+# List all companies
+all_companies = await client.companies.list({"province": "Gauteng"})
+
+# Top companies
+top = await client.companies.top()
+
+# Lookup by registration number
+by_reg = await client.companies.by_registration("2020/123456/07")
+
+# Sub-resources
+awards = await client.companies.awards("BuildCorp SA")
+contracts = await client.companies.contracts("BuildCorp SA")
+tenders = await client.companies.tenders("BuildCorp SA")
+directors = await client.companies.directors("BuildCorp SA")
 ```
 
-#### Organisations (Procurement Bodies)
+#### Organizations — `client.organizations`
+
+Government departments and procurement bodies.
 
 ```python
 org = await client.organizations.get("org_001")
 tenders = await client.organizations.tenders("org_001", {"status": "OPEN"})
+
+# List, search, and lookups
+orgs = await client.organizations.list()
+results = await client.organizations.search({"q": "Health"})
+by_slug = await client.organizations.by_slug("dept-health")
+by_reg = await client.organizations.by_registration("123456")
+counts = await client.organizations.counts_by_type()
+directors = await client.organizations.directors("org_001")
 ```
 
-#### Meta
+#### Directors — `client.directors`
+
+Company director information from CIPC sources.
+
+```python
+directors = await client.directors.list({"fullName": "John"})
+director = await client.directors.get("dir_001")
+results = await client.directors.search({"q": "Smith"})
+by_org = await client.directors.by_organization("org_001")
+```
+
+#### Categories — `client.categories`
+
+Tender category reference data.
+
+```python
+categories = await client.categories.list()
+category = await client.categories.get("cat_001")
+by_slug = await client.categories.by_slug("construction")
+```
+
+#### Provinces — `client.provinces`
+
+Province data with health scores.
+
+```python
+provinces = await client.provinces.list()
+province = await client.provinces.get("gauteng")
+scores = await client.provinces.health_scores("gauteng")
+```
+
+#### SEO & Content — `client.seo`
+
+SEO metadata and content.
+
+```python
+cat_seo = await client.seo.category("construction")
+prov_seo = await client.seo.province("gauteng")
+articles = await client.seo.list_articles({"limit": 10})
+article = await client.seo.get_article("article_001")
+author = await client.seo.get_author("author_001")
+```
+
+#### Industry — `client.industry`
+
+Industry value benchmarks.
+
+```python
+benchmarks = await client.industry.list()
+benchmark = await client.industry.get("bench_001")
+```
+
+#### Services — `client.services`
+
+Service type classifications.
+
+```python
+services = await client.services.list()
+service = await client.services.get("consulting")
+```
+
+#### OCDS — `client.ocds`
+
+Open Contracting Data Standard parties.
+
+```python
+parties = await client.ocds.list_parties({"role": "buyer"})
+party = await client.ocds.get_party("party_001")
+```
+
+#### Intelligence — `client.intel`
+
+Market alerts and sector insights.
+
+```python
+sources = await client.intel.list_sources()
+source = await client.intel.get_source("src_001")
+items = await client.intel.list_items({"category": "energy"})
+item = await client.intel.get_item("item_001")
+```
+
+#### Forensic — `client.forensic`
+
+Restricted supplier screening.
+
+```python
+suppliers = await client.forensic.list_restricted_suppliers()
+supplier = await client.forensic.get_restricted_supplier("rs_001")
+matches = await client.forensic.match_restricted_supplier({"name": "Acme Corp"})
+result = await client.forensic.check_restricted_supplier({"name": "Acme Corp"})
+```
+
+#### CIPC — `client.cipc`
+
+Companies and Intellectual Property Commission data.
+
+```python
+enrichments = await client.cipc.list_enrichments({"supplierName": "Build"})
+enrichment = await client.cipc.get_enrichment("enr_001")
+directors = await client.cipc.list_directors({"companyName": "BuildCorp"})
+director = await client.cipc.get_director("dir_001")
+```
+
+#### Newsletters — `client.newsletters`
+
+Newsletter editions.
+
+```python
+editions = await client.newsletters.list()
+edition = await client.newsletters.get("nl_001")
+```
+
+#### Documents — `client.documents`
+
+Tender document metadata and download URLs.
+
+```python
+doc = await client.documents.get("doc_001")
+url = await client.documents.download_url("doc_001", {"requireR2": "1"})
+```
+
+#### Meta — `client.meta`
+
+API status, usage, and reference data.
 
 ```python
 status = await client.meta.status()
 provinces = await client.meta.provinces()
 categories = await client.meta.categories()
 usage = await client.meta.usage()
+industries = await client.meta.industries()
 ```
 
 ### Pagination
@@ -312,28 +494,172 @@ if rl:
 
 ## Resources API Reference
 
-| Resource | Method | Endpoint |
-|----------|--------|----------|
-| `client.tenders` | `list(params?)` | `GET /v1/tenders` |
-| | `get(id)` | `GET /v1/tenders/{id}` |
-| | `search(params)` | `GET /v1/tenders/search` |
-| | `documents(id)` | `GET /v1/tenders/{id}/documents` |
-| | `awards(id)` | `GET /v1/tenders/{id}/awards` |
-| | `timeline(id)` | `GET /v1/tenders/{id}/timeline` |
-| | `analysis(id)` | `GET /v1/tenders/{id}/analysis` |
-| | `value_estimate(id)` | `GET /v1/tenders/{id}/value-estimate` |
-| | `paginated(params?)` | (async iterator) |
-| `client.awards` | `list(params?)` | `GET /v1/awards` |
-| | `get(id)` | `GET /v1/awards/{id}` |
-| | `analytics(params?)` | `GET /v1/awards/analytics` |
-| `client.companies` | `get(name)` | `GET /v1/companies/{name}` |
-| | `search(params)` | `GET /v1/companies/search` |
-| `client.organizations` | `get(id)` | `GET /v1/organizations/{id}` |
-| | `tenders(id)` | `GET /v1/organizations/{id}/tenders` |
-| `client.meta` | `status()` | `GET /v1/meta/status` |
-| | `provinces()` | `GET /v1/meta/provinces` |
-| | `categories()` | `GET /v1/meta/categories` |
-| | `usage()` | `GET /v1/meta/usage` |
+### Tenders — `client.tenders`
+| Method | Endpoint |
+|--------|----------|
+| `list(params?)` | `GET /v2/tenders` |
+| `get(id)` | `GET /v2/tenders/{id}` |
+| `search(params)` | `GET /v2/tenders/search` |
+| `closing_soon(params?)` | `GET /v2/tenders/closing-soon` |
+| `new_tenders(params?)` | `GET /v2/tenders/new` |
+| `bbbee_required(params?)` | `GET /v2/tenders/bbbee-required` |
+| `value_range(min, max, params?)` | `GET /v2/tenders/value-range` |
+| `by_province(province, params?)` | `GET /v2/tenders/by-province/{province}` |
+| `by_organization(orgId, params?)` | `GET /v2/tenders/by-organization/{orgId}` |
+| `by_publication_type(type, params?)` | `GET /v2/tenders/by-publication-type/{type}` |
+| `by_category(category, params?)` | `GET /v2/tenders/by-category/{category}` |
+| `counts_by_province()` | `GET /v2/tenders/counts/province` |
+| `counts_by_category()` | `GET /v2/tenders/counts/category` |
+| `counts_by_organization()` | `GET /v2/tenders/counts/organization` |
+| `counts_by_status()` | `GET /v2/tenders/counts/status` |
+| `contracts(id)` | `GET /v2/tenders/{id}/contracts` |
+| `milestones(id)` | `GET /v2/tenders/{id}/milestones` |
+| `bidders(id)` | `GET /v2/tenders/{id}/bidders` |
+| `submission_requirements(id)` | `GET /v2/tenders/{id}/submission-requirements` |
+| `documents(id)` | `GET /v2/tenders/{id}/documents` |
+| `awards(id)` | `GET /v2/tenders/{id}/awards` |
+| `timeline(id)` | `GET /v2/tenders/{id}/timeline` |
+| `analysis(id)` | `GET /v2/tenders/{id}/analysis` |
+| `value_estimate(id)` | `GET /v2/tenders/{id}/value-estimate` |
+| `seo(id)` | `GET /v2/tenders/{id}/seo` |
+| `slug(id)` | `GET /v2/tenders/{id}/slug` |
+| `related(id, params?)` | `GET /v2/tenders/{id}/related` |
+| `paginated(params?)` | (async iterator) |
+
+### Awards — `client.awards`
+| Method | Endpoint |
+|--------|----------|
+| `list(params?)` | `GET /v2/awards` |
+| `get(id)` | `GET /v2/awards/{id}` |
+| `by_tender(tenderId, params?)` | `GET /v2/awards/by-tender/{tenderId}` |
+| `by_supplier(name, params?)` | `GET /v2/awards/by-supplier/{name}` |
+| `by_supplier_party(partyId, params?)` | `GET /v2/awards/by-supplier-party/{partyId}` |
+| `by_date_range(params)` | `GET /v2/awards/by-date-range` |
+| `analytics(params)` | `GET /v2/awards/analytics` |
+| `analytics_by_province(params?)` | `GET /v2/awards/analytics/province` |
+| `analytics_by_category(params?)` | `GET /v2/awards/analytics/category` |
+| `analytics_by_bee_level(params?)` | `GET /v2/awards/analytics/bee-level` |
+| `analytics_by_enterprise_type(params?)` | `GET /v2/awards/analytics/enterprise-type` |
+| `subcontractors(id, params?)` | `GET /v2/awards/{id}/subcontractors` |
+
+### Companies (Suppliers) — `client.companies`
+| Method | Endpoint |
+|--------|----------|
+| `list(params?)` | `GET /v2/companies` |
+| `get(name)` | `GET /v2/companies/{name}` |
+| `search(params)` | `GET /v2/companies/search` |
+| `top(params?)` | `GET /v2/companies/top` |
+| `by_registration(reg)` | `GET /v2/companies/by-registration/{reg}` |
+| `awards(name, params?)` | `GET /v2/companies/{name}/awards` |
+| `contracts(name, params?)` | `GET /v2/companies/{name}/contracts` |
+| `tenders(name, params?)` | `GET /v2/companies/{name}/tenders` |
+| `directors(name)` | `GET /v2/companies/{name}/directors` |
+
+### Organizations — `client.organizations`
+| Method | Endpoint |
+|--------|----------|
+| `list(params?)` | `GET /v2/organizations` |
+| `get(id)` | `GET /v2/organizations/{id}` |
+| `search(params)` | `GET /v2/organizations/search` |
+| `by_slug(slug)` | `GET /v2/organizations/by-slug/{slug}` |
+| `by_registration(reg)` | `GET /v2/organizations/by-registration/{reg}` |
+| `counts_by_type()` | `GET /v2/organizations/counts-by-type` |
+| `tenders(id, params?)` | `GET /v2/organizations/{id}/tenders` |
+| `directors(id, params?)` | `GET /v2/organizations/{id}/directors` |
+
+### Directors — `client.directors`
+| Method | Endpoint |
+|--------|----------|
+| `list(params?)` | `GET /v2/directors` |
+| `get(id)` | `GET /v2/directors/{id}` |
+| `search(params)` | `GET /v2/directors/search` |
+| `by_organization(orgId, params?)` | `GET /v2/directors/by-organization/{orgId}` |
+
+### Categories — `client.categories`
+| Method | Endpoint |
+|--------|----------|
+| `list()` | `GET /v2/categories` |
+| `get(id)` | `GET /v2/categories/{id}` |
+| `by_slug(slug)` | `GET /v2/categories/by-slug/{slug}` |
+
+### Provinces — `client.provinces`
+| Method | Endpoint |
+|--------|----------|
+| `list()` | `GET /v2/provinces` |
+| `get(slug)` | `GET /v2/provinces/{slug}` |
+| `health_scores(slug)` | `GET /v2/provinces/{slug}/health-scores` |
+
+### SEO & Content — `client.seo`
+| Method | Endpoint |
+|--------|----------|
+| `category(slug)` | `GET /v2/seo/category/{slug}` |
+| `province(slug)` | `GET /v2/seo/province/{slug}` |
+| `list_articles(params?)` | `GET /v2/articles` |
+| `get_article(id)` | `GET /v2/articles/{id}` |
+| `get_author(id)` | `GET /v2/authors/{id}` |
+
+### Industry — `client.industry`
+| Method | Endpoint |
+|--------|----------|
+| `list()` | `GET /v2/industry/benchmarks` |
+| `get(id)` | `GET /v2/industry/benchmarks/{id}` |
+
+### Services — `client.services`
+| Method | Endpoint |
+|--------|----------|
+| `list()` | `GET /v2/services` |
+| `get(slug)` | `GET /v2/services/{slug}` |
+
+### OCDS — `client.ocds`
+| Method | Endpoint |
+|--------|----------|
+| `list_parties(params?)` | `GET /v2/ocds/parties` |
+| `get_party(id)` | `GET /v2/ocds/parties/{id}` |
+
+### Intelligence — `client.intel`
+| Method | Endpoint |
+|--------|----------|
+| `list_sources()` | `GET /v2/intel/sources` |
+| `get_source(id)` | `GET /v2/intel/sources/{id}` |
+| `list_items(params?)` | `GET /v2/intel/items` |
+| `get_item(id)` | `GET /v2/intel/items/{id}` |
+
+### Forensic — `client.forensic`
+| Method | Endpoint |
+|--------|----------|
+| `list_restricted_suppliers(params?)` | `GET /v2/forensic/restricted-suppliers` |
+| `get_restricted_supplier(id)` | `GET /v2/forensic/restricted-suppliers/{id}` |
+| `match_restricted_supplier(params)` | `GET /v2/forensic/restricted-suppliers/match` |
+| `check_restricted_supplier(params)` | `GET /v2/forensic/restricted-suppliers/check` |
+
+### CIPC — `client.cipc`
+| Method | Endpoint |
+|--------|----------|
+| `list_enrichments(params?)` | `GET /v2/cipc/enrichments` |
+| `get_enrichment(id)` | `GET /v2/cipc/enrichments/{id}` |
+| `list_directors(params?)` | `GET /v2/cipc/directors` |
+| `get_director(id)` | `GET /v2/cipc/directors/{id}` |
+
+### Newsletters — `client.newsletters`
+| Method | Endpoint |
+|--------|----------|
+| `list(params?)` | `GET /v2/newsletters` |
+| `get(id)` | `GET /v2/newsletters/{id}` |
+
+### Documents — `client.documents`
+| Method | Endpoint |
+|--------|----------|
+| `get(id)` | `GET /v2/documents/{id}` |
+| `download_url(id, params?)` | `GET /v2/documents/{id}/download-url` |
+
+### Meta — `client.meta`
+| Method | Endpoint |
+|--------|----------|
+| `status()` | `GET /v2/meta/status` |
+| `provinces()` | `GET /v2/meta/provinces` |
+| `categories()` | `GET /v2/meta/categories` |
+| `usage()` | `GET /v2/meta/usage` |
+| `industries(params?)` | `GET /v2/meta/industries` |
 
 ---
 

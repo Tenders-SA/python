@@ -61,7 +61,7 @@ class TestClientKeyConversion:
             resp.json.return_value = {
                 "success": True,
                 "data": [{"tenderId": "t1", "closingDate": "2026-01-01"}],
-                "meta": {"requestId": "r1", "timestamp": "t", "apiVersion": "v1"},
+                "meta": {"requestId": "r1", "timestamp": "t", "apiVersion": "v2"},
             }
             mock_req.return_value = resp
             result = await c._get_list("/tenders")
@@ -79,7 +79,7 @@ class TestClientKeyConversion:
             resp.json.return_value = {
                 "success": True,
                 "data": {"tenderId": "t1", "closingDate": "2026-01-01"},
-                "meta": {"requestId": "r1", "timestamp": "t", "apiVersion": "v1"},
+                "meta": {"requestId": "r1", "timestamp": "t", "apiVersion": "v2"},
             }
             mock_req.return_value = resp
             result = await c._get_single("/tenders/t1")

@@ -62,12 +62,12 @@ class EstimatedValue:
     methodology: str | None = None
 
 
-# ── Tender ───────────────────────────────────────────────────────────────────
-
 @dataclass
 class SourceOrganization:
     name: str
 
+
+# ── Tender ───────────────────────────────────────────────────────────────────
 
 @dataclass
 class Subcontractor:
@@ -120,6 +120,8 @@ class Tender:
     ai_key_requirements: list[str] | None = None
     ai_confidence: float | None = None
     classification_confidence: float | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
     source_organization: SourceOrganization | None = None
     reference_number: str | None = None
     site_url: str | None = None
@@ -184,6 +186,12 @@ class ValueEstimate:
     factors: Any = None
 
 
+@dataclass
+class CountItem:
+    name: str
+    count: int
+
+
 # ── Company ──────────────────────────────────────────────────────────────────
 
 @dataclass
@@ -195,6 +203,7 @@ class Director:
 @dataclass
 class CompanyProfile:
     name: str
+    id: str | None = None
     total_awards: int = 0
     total_value: float = 0.0
     registration_number: str | None = None
@@ -220,6 +229,7 @@ class CompanyProfile:
 class CompanyProfileResponse:
     profile: CompanyProfile
     awards: list[Award] = field(default_factory=list)
+    directors: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -293,13 +303,203 @@ class OrganizationTenderSummary:
     estimated_value: EstimatedValue | None = None
 
 
+# ── Source Director ──────────────────────────────────────────────────────────
+
+@dataclass
+class SourceDirector:
+    director_id: str
+    organization_id: str | None = None
+    full_name: str | None = None
+    position: str | None = None
+    appointment_date: str | None = None
+    validated_at: str | None = None
+    validation_status: str | None = None
+
+
+# ── Category ─────────────────────────────────────────────────────────────────
+
+@dataclass
+class TenderCategory:
+    slug: str
+    name: str
+    tender_count: int = 0
+
+
+# ── Province ─────────────────────────────────────────────────────────────────
+
+@dataclass
+class ProvinceInfo:
+    name: str
+    tender_count: int = 0
+
+
+@dataclass
+class ProvinceHealthScore:
+    province: str
+    year: int | None = None
+    quarter: int | None = None
+    score: float | None = None
+    metric: str | None = None
+
+
+# ── SEO & Content ────────────────────────────────────────────────────────────
+
+@dataclass
+class SeoData:
+    pass
+
+
+@dataclass
+class Article:
+    id: str
+    title: str
+    slug: str | None = None
+    excerpt: str | None = None
+    content: str | None = None
+    published_at: str | None = None
+    author_id: str | None = None
+    status: str | None = None
+
+
+@dataclass
+class Author:
+    id: str
+    name: str
+    slug: str | None = None
+    bio: str | None = None
+
+
+# ── Industry ─────────────────────────────────────────────────────────────────
+
+@dataclass
+class IndustryBenchmark:
+    id: str
+    industry_name: str
+    sample_size: int = 0
+    median_value: float | None = None
+
+
+# ── Service ──────────────────────────────────────────────────────────────────
+
+@dataclass
+class ServiceType:
+    id: str
+    name: str
+    slug: str | None = None
+    description: str | None = None
+
+
+# ── OCDS ─────────────────────────────────────────────────────────────────────
+
+@dataclass
+class OcdsParty:
+    id: str
+    name: str
+    role: str | None = None
+    ocds_party_id: str | None = None
+
+
+# ── Intelligence ─────────────────────────────────────────────────────────────
+
+@dataclass
+class IntelSource:
+    id: str
+    name: str
+
+
+@dataclass
+class IntelItem:
+    id: str
+    title: str
+    summary: str | None = None
+    source_id: str | None = None
+    source_name: str | None = None
+    category: str | None = None
+    published_at: str | None = None
+    url: str | None = None
+    status: str | None = None
+
+
+# ── Forensic ─────────────────────────────────────────────────────────────────
+
+@dataclass
+class RestrictedSupplier:
+    id: str
+    supplier_name: str
+    restriction_type: str | None = None
+    status: str | None = None
+    reference: str | None = None
+
+
+@dataclass
+class RestrictedSupplierMatch:
+    restricted: bool
+    match: RestrictedSupplier | None = None
+
+
+# ── CIPC ─────────────────────────────────────────────────────────────────────
+
+@dataclass
+class CipcEnrichment:
+    id: str
+    name: str
+    registration_number: str | None = None
+    enterprise_type: str | None = None
+    cipc_enrichment_id: str | None = None
+    compliance_score: float | None = None
+    forensic_risk_score: float | None = None
+    director_count: int | None = None
+
+
+@dataclass
+class CipcDirector:
+    id: str
+    company_name: str | None = None
+    registration_no: str | None = None
+    role_type: str | None = None
+    status: str | None = None
+    appointed_date: str | None = None
+    resigned_date: str | None = None
+    director_full_name: str | None = None
+    compliance_score: float | None = None
+    forensic_risk_score: float | None = None
+
+
+# ── Newsletter ───────────────────────────────────────────────────────────────
+
+@dataclass
+class NewsletterEdition:
+    id: str
+    title: str
+    edition_number: int | None = None
+    published_at: str | None = None
+    summary: str | None = None
+    content: str | None = None
+
+
+# ── Document ─────────────────────────────────────────────────────────────────
+
+@dataclass
+class DocumentDetail:
+    id: str
+    file_name: str | None = None
+    file_size: int | None = None
+    mime_type: str | None = None
+    cache_status: str | None = None
+    download_url: str | None = None
+    r2_key: str | None = None
+    tender_id: str | None = None
+
+
 # ── Meta ─────────────────────────────────────────────────────────────────────
 
 @dataclass
 class ApiStatus:
     healthy: bool
     version: str
-    last_sync: dict
+    entities: dict | None = None
+    cron: dict | None = None
+    timestamp: str | None = None
 
 
 @dataclass
@@ -310,8 +510,9 @@ class ProvinceCount:
 
 @dataclass
 class CategoryCount:
-    name: str
-    count: int
+    category_slug: str
+    category_name: str
+    tender_count: int
 
 
 @dataclass
@@ -319,3 +520,11 @@ class UsageStats:
     daily: int
     monthly: int
     limit: dict
+
+
+@dataclass
+class IndustryBenchmarkSummary:
+    id: str
+    industry_name: str
+    sample_size: int = 0
+    median_value: float | None = None

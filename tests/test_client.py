@@ -38,7 +38,7 @@ def sample_meta() -> dict:
     return {
         "requestId": "req_001",
         "timestamp": "2026-05-25T12:00:00Z",
-        "apiVersion": "v1",
+        "apiVersion": "v2",
         "page": 1,
         "pageSize": 20,
         "totalCount": 100,
@@ -86,18 +86,30 @@ class TestClientInit:
     def test_creates_client_with_api_key(self, api_key: str) -> None:
         c = TendersaClient(api_key)
         assert c._api_key == api_key
-        assert c._base_url == "https://api.tenders-sa.org/v1"
+        assert c._base_url == "https://api.tenders-sa.org/v2"
         assert c._timeout == 30.0
 
     def test_custom_base_url(self, api_key: str) -> None:
-        c = TendersaClient(api_key, base_url="https://staging.api.tenders-sa.org/v1")
-        assert c._base_url == "https://staging.api.tenders-sa.org/v1"
+        c = TendersaClient(api_key, base_url="https://staging.api.tenders-sa.org/v2")
+        assert c._base_url == "https://staging.api.tenders-sa.org/v2"
 
     def test_has_resource_attributes(self, client: TendersaClient) -> None:
         assert client.tenders is not None
         assert client.awards is not None
         assert client.companies is not None
         assert client.organizations is not None
+        assert client.directors is not None
+        assert client.categories is not None
+        assert client.provinces is not None
+        assert client.seo is not None
+        assert client.industry is not None
+        assert client.services is not None
+        assert client.ocds is not None
+        assert client.intel is not None
+        assert client.forensic is not None
+        assert client.cipc is not None
+        assert client.newsletters is not None
+        assert client.documents is not None
         assert client.meta is not None
 
     def test_default_headers(self, api_key: str) -> None:
@@ -206,7 +218,7 @@ class TestPaginatedAsyncIterator:
                 meta=Meta(
                     request_id="r",
                     timestamp="t",
-                    api_version="v1",
+                    api_version="v2",
                     page=1,
                     page_size=20,
                     has_next=False,
@@ -231,7 +243,7 @@ class TestPaginatedAsyncIterator:
                 meta=Meta(
                     request_id="r",
                     timestamp="t",
-                    api_version="v1",
+                    api_version="v2",
                     page=page_num,
                     page_size=20,
                     has_next=call_count < 3,
@@ -256,7 +268,7 @@ class TestPaginatedAsyncIterator:
                 meta=Meta(
                     request_id="r",
                     timestamp="t",
-                    api_version="v1",
+                    api_version="v2",
                     page=page_num,
                     page_size=20,
                     has_next=True,
@@ -317,11 +329,11 @@ class TestMetaParsing:
         raw = {
             "request_id": "r1",
             "timestamp": "now",
-            "api_version": "v1",
+            "api_version": "v2",
         }
         meta = client._parse_meta(raw)
         assert meta.request_id == "r1"
-        assert meta.api_version == "v1"
+        assert meta.api_version == "v2"
 
     def test_parse_empty_meta(self, client: TendersaClient) -> None:
         meta = client._parse_meta({})
